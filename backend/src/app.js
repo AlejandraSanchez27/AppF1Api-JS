@@ -3,7 +3,7 @@ const cors = require("cors")
 //importar Express para crear la API REST
 const express = require ("express")
 //Importar las rutas de autenticación
-//const authRoutes = require ("./routes/authRoute")
+const authRoutes = require ("./routes/authRoute")
 
 //crear la aplicación Express
 const app = express();
@@ -13,7 +13,7 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
-
+app.use("/api/auth", authRoutes);
 //Endpoint raiz para verificar que la API esta activa
 app.get("/",(req, res) => {
     //Responde el JSON
