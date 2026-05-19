@@ -24,6 +24,7 @@ app.get("/",(req, res) => {
 //ejemplo: Get/users/me
 
 //app.use("/users", userRoutes)
+app.use("/auth", authRoutes);
 
 app.use((req, res) => {
     res.status(404).json({message: "Ruta no encontrada"});
