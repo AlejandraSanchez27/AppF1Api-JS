@@ -60,7 +60,7 @@ router.post("/register", register);
 
 
 //definir la ruta de login
-//router.post("/login", login);
+router.post("/login", login);
 
 //exportar el router para usarlo en app.js
 module.exports= router;

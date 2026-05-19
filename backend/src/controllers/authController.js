@@ -43,7 +43,7 @@ function createToken(user){
 
         process.env.JWT_SECRET,
         //time de expiracion del token
-        {expiresIn: process.env.JWT_SECRET_IN || "10m"}
+        {expiresIn: process.env.JWT_EXPRESS_IN || "10m"}
     );
 }
 
@@ -62,7 +62,7 @@ async function register(req, res){
 
         //consulta si ya existe un usuario con ese correo
         const existingUser = await pool.query(
-            "SELECT id FROM Users WHERE email = $1", 
+            "SELECT id FROM users WHERE email = $1", 
             [normalizedEmail]
         );
         if (existingUser.rowCount > 0) {
@@ -74,7 +74,7 @@ async function register(req, res){
 
         //insertar el usuario en PostgreSQL
         await pool.query(
-            "INSERT INTO Users (name, email, password_hash) VALUES ($1, $2, $3)",
+            "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3)",
             [name.trim(), normalizedEmail, passwordHash]
         );
         res.status(200).json({message: "Usuario registrado exitosamente"});
@@ -84,6 +84,43 @@ async function register(req, res){
     }
 }
 
+// controlador para POST /auth/login
+async function login(req, res){
+    try {
+        const {email, password} = req.body;
+        const validationError = validateLoginInput(email, password);
+        if (validationError) {
+            return res.status(400).json({message: validationError});
+        }
+        const normalizedEmail = email.trim().toLowerCase();
+
+        //consulta el usuario por correo
+        const userResult = await pool.query(
+            "SELECT id, name, email, password_hash FROM users WHERE email = $1",
+            [normalizedEmail]
+        );
+        if (userResult.rowCount === 0) {
+            return res.status(400).json({message: "Correo o contraseña incorrectos"});
+        }
+        const user = userResult.rows[0];
+        //comparar la contraseña con el hash almacenado
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
+        if (!passwordMatch) {
+            return res.status(400).json({message: "Correo o contraseña incorrectos"});
+        }
+        //crear un token JWT
+        const token = createToken(user);
+        res.status(200).json({message: "Login exitoso",
+            token});
+        
+    } catch (error) {
+        console.error("Error en login:", error);
+        return res.status(500).json({message: "Ocurrio un error inesperado"});
+    }
+
+}
+
 module.exports = {
-    register
+    register,
+    login
 }
