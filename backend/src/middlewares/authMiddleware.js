@@ -7,7 +7,7 @@ function authMiddleware(req, res, next){
     const authorization = req.headers.authorization;
 
     //valida que el header exista y tenga un formato bearer
-    if(!authorization || !authorization.startWith("Bearer")){
+    if(!authorization || !authorization.startsWith("Bearer")){
         return res.status(401).json({message: "Token no proporcionado"})
     }
 

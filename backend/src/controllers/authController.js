@@ -110,8 +110,15 @@ async function login(req, res){
         }
         //crear un token JWT
         const token = createToken(user);
-        res.status(200).json({message: "Login exitoso",
-            token});
+        res.status(200).json({
+            message: "Login exitoso",
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
+        });
         
     } catch (error) {
         console.error("Error en login:", error);
