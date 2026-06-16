@@ -1,3 +1,14 @@
 package com.appf1api.appf1api.authapp.data.remote.dto
 
-data class UserDto()
+import com.appf1api.appf1api.authapp.domain.model.User
+
+data class UserDto(
+    val id: Int?,
+    val name: String?,
+    val email: String?
+)
+fun UserDto.toDomain(): User = User(
+    id= id ?: 0,
+    name = name.orEmpty(),
+    email= email.orEmpty(),
+)
