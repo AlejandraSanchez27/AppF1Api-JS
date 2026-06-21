@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -27,6 +29,17 @@ fun PasswordTextField(
     var isPasswordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFFE10600),
+            unfocusedBorderColor = Color.Gray,
+            unfocusedLabelColor = Color.LightGray,
+            focusedLabelColor = Color(0xFFE10600),
+            cursorColor = Color(0xFFE10600),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedPlaceholderColor = Color.LightGray,
+            unfocusedPlaceholderColor = Color.LightGray
+        ),
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,

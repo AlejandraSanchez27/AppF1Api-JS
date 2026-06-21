@@ -1,10 +1,15 @@
 package com.appf1api.appf1api.authapp.presentation.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.appf1api.appf1api.authapp.data.remote.dto.toDomain
+import com.appf1api.appf1api.authapp.domain.model.Driver
+import com.appf1api.appf1api.authapp.domain.model.toDomain
 import com.appf1api.appf1api.core.util.Resource
 import com.appf1api.appf1api.authapp.domain.repository.AuthRepository
+import com.appf1api.appf1api.core.network.F1RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,8 +23,9 @@ class HomeViewModel(private val repository: AuthRepository) : ViewModel() {
 
     init {
         loadProfile()
+        loadDrivers()
+        loadNextRace()
     }
-
     fun loadProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -50,6 +56,55 @@ class HomeViewModel(private val repository: AuthRepository) : ViewModel() {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return HomeViewModel(repository) as T
+        }
+    }
+
+    private fun loadDrivers() {
+        viewModelScope.launch {
+            try {
+                val response = F1RetrofitClient.api.getDriverStandings()
+                val drivers = response.MRData
+                    .StandingsTable
+                    .StandingsLists[0]
+                    .DriverStandings
+                    .map { it.toDomain() }
+
+                _uiState.update {
+                    it.copy(drivers = drivers)
+                }
+                Log.d(
+                    "F1_API",
+                    "Pilotos cargados: ${drivers.size}"
+                )
+            } catch (e: Exception) {
+                Log.e(
+                    "F1_API",
+                    "ERROR -> ${e.message}",
+                    e
+                )
+            }
+        }
+    }
+    private fun loadNextRace() {
+        viewModelScope.launch {
+            try {
+                val response =
+                    F1RetrofitClient.api.getNextRace()
+                val race =
+                    response.MRData
+                        .RaceTable
+                        .Races[0]
+                        .toDomain()
+                _uiState.update {
+                    it.copy(nextRace = race)
+                }
+                Log.d("F1_RACE", race.raceName)
+            } catch (e: Exception) {
+                Log.e(
+                    "F1_RACE",
+                    e.message ?: "error"
+                )
+            }
         }
     }
 }

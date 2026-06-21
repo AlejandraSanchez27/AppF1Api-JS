@@ -1,5 +1,6 @@
 package com.appf1api.appf1api.core.navigation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -12,17 +13,21 @@ import androidx.navigation.compose.rememberNavController
 import com.appf1api.appf1api.core.network.RetrofitClient
 import com.appf1api.appf1api.authapp.data.local.TokenManager
 import com.appf1api.appf1api.authapp.data.repository.AuthRepositoryImpl
+import com.appf1api.appf1api.authapp.presentation.driver.DriverDetailScreen
 import com.appf1api.appf1api.authapp.presentation.auth.AuthLoadingScreen
 import com.appf1api.appf1api.authapp.presentation.auth.AuthLoadingUiState
 import com.appf1api.appf1api.authapp.presentation.auth.AuthLoadingViewModel
+import com.appf1api.appf1api.authapp.presentation.driver.DriverViewModel
 import com.appf1api.appf1api.authapp.presentation.home.HomeScreen
 import com.appf1api.appf1api.authapp.presentation.home.HomeViewModel
 import com.appf1api.appf1api.authapp.presentation.login.LoginScreen
 import com.appf1api.appf1api.authapp.presentation.login.LoginViewModel
+import com.appf1api.appf1api.authapp.presentation.race.RaceDetailScreen
+import com.appf1api.appf1api.authapp.presentation.race.RaceViewModel
 import com.appf1api.appf1api.authapp.presentation.register.RegisterScreen
 import com.appf1api.appf1api.authapp.presentation.register.RegisterViewModel
 
-@androidx.compose.runtime.Composable
+@Composable
 fun AppNavGraph() {
     val context = LocalContext.current.applicationContext
     val navController = rememberNavController()
@@ -32,6 +37,8 @@ fun AppNavGraph() {
             tokenManager = TokenManager(context)
         )
     }
+    val raceViewModel: RaceViewModel = viewModel()
+    val driverViewModel: DriverViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -111,13 +118,32 @@ fun AppNavGraph() {
             val viewModel: HomeViewModel = viewModel(
                 factory = HomeViewModel.Factory(repository)
             )
-            val uiState by viewModel.uiState.collectAsState()
-
+            val uiState by viewModel
+                .uiState
+                .collectAsState()
             HomeScreen(
                 uiState = uiState,
-                onLogoutClick = viewModel::logout
+                onLogoutClick = viewModel::logout,
+                onDriverClick = { driverId ->
+                    val driver = uiState.drivers.find {
+                        it.id == driverId
+                    }
+                    driver?.let {
+                        driverViewModel.selectDriver(it)
+                        navController.navigate(
+                            Routes.DRIVER_DETAIL
+                        )
+                    }
+                },
+                onRaceClick = {
+                    uiState.nextRace?.let {
+                        raceViewModel.selectRace(it)
+                        navController.navigate(
+                            Routes.RACE_DETAIL
+                        )
+                    }
+                }
             )
-
             LaunchedEffect(uiState.isLoggedOut) {
                 if (uiState.isLoggedOut) {
                     viewModel.resetLogoutState()
@@ -125,6 +151,37 @@ fun AppNavGraph() {
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
                 }
+            }
+        }
+
+        composable(
+            Routes.RACE_DETAIL
+        ) {
+            val race by raceViewModel
+                .selectedRace
+                .collectAsState()
+            race?.let {
+                RaceDetailScreen(
+                    race = it,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+        composable(
+            Routes.DRIVER_DETAIL
+        ) {
+            val driver by driverViewModel
+                .selectedDriver
+                .collectAsState()
+            driver?.let {
+                DriverDetailScreen(
+                    driver = it,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }
